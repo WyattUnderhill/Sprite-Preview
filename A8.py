@@ -1,5 +1,5 @@
-#
-#
+# Github
+# By: Sarah Carver u1583080, Wyatt Underhill u1568718
 
 import math
 
@@ -16,7 +16,6 @@ def load_sprite(sprite_folder_name, number_of_frames):
         folder_and_file_name = sprite_folder_name + "/sprite_" + str(frame).rjust(padding, '0') + ".png"
         frames.append(QPixmap(folder_and_file_name))
 
-
     return frames
 
 class SpritePreview(QMainWindow):
@@ -25,13 +24,15 @@ class SpritePreview(QMainWindow):
         super().__init__()
         self.setWindowTitle("Sprite Animation Preview")
         # This loads the provided sprite and would need to be changed for your own.
-        self.num_frames = 10
-        self.frames = load_sprite('Kirby',self.num_frames)
+        self.num_frames = 21
+        self.frames = load_sprite('spriteImages',self.num_frames)
+        self.sprite = 0
         self.image = QLabel()
         self.button = QPushButton("Start")
         self.slide = QSlider(Qt.Orientation.Vertical)
         self.text1 = QLabel("Frames Per Second")
         self.text2 = QLabel("0")
+        self.timer = QTimer()
 
         # Add any other instance variables needed to track information as the program
         # runs here
@@ -45,7 +46,6 @@ class SpritePreview(QMainWindow):
         application_frame = QFrame()
 
         application_layout = QVBoxLayout()
-
 
         image_frame = QFrame()
         image_layout = QHBoxLayout(image_frame)
@@ -65,28 +65,18 @@ class SpritePreview(QMainWindow):
         file_menu.addAction(exit_action)
 
 
-        # image = QLabel()
-        # self.image.setPixmap(QPixmap(self.frames[1]))
-        # sprite = self.frames[1]
-        # print(sprite)
-
-        self.image.setPixmap(QPixmap("Kirby/sprite_00.png"))
-        # self.image.setPixmap(QPixmap(sprite))
+        self.image.setPixmap(self.frames[self.sprite])
         # self.image.setScaledContents(True)
-        # self.image.Scaled(100,100,Qt.AspectRatioMode.KeepAspectRatio)
         image_layout.addWidget(self.image)
 
-        # slide = QSlider()
         self.slide.setRange(0, 100)
         self.slide.setSingleStep(1)
-        # self.slide.setTickPosition(TicksAbove)
+        self.slide.setTickPosition(QSlider.TickPosition.TicksBothSides)
         self.slide.setTickInterval(12)
         image_layout.addWidget(self.slide)
 
         self.slide.valueChanged.connect(self.value_changed)
-        # self.slide.sliderMoved.connect(self.slider_position)
 
-        # text1 = QLabel("Frames Per Second")
         font = self.text1.font()
         font.setPointSize(15)
         self.text1.setFont(font)
@@ -100,14 +90,13 @@ class SpritePreview(QMainWindow):
         text_frame.setLayout(text_layout)
         button_layout.addWidget(text_frame)
 
-
-        # button = QPushButton("Start")
         self.button.setCheckable(True)
-        # self.button.clicked.connect(self.the_button_was_clicked)
         self.button.clicked.connect(self.the_button_was_toggled)
 
         button_layout.addWidget(self.button)
 
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self.animation)
 
         image_frame.setLayout(image_layout)
 
@@ -121,40 +110,38 @@ class SpritePreview(QMainWindow):
 
         self.setFixedSize(QSize(300, 300))
 
-
+    # You will need methods in the class to act as slots to connect to signals
 
     def quit_program(self):
         self.close()
 
     def pause(self):
-        print("pause")
+        self.timer.stop()
+        self.button.setChecked(False)
+        self.button.setText("Start")
 
-    def the_button_was_clicked(self):
-        print("Clicked!")
 
     def the_button_was_toggled(self, checked):
         self.button_is_checked = checked
         if self.button_is_checked:
+            self.timer.start()
             self.button.setText("Stop")
-            self.animation()
         else:
+            self.timer.stop()
+            self.image.setPixmap(self.frames[0])
             self.button.setText("Start")
-            self.image.setPixmap(QPixmap("Kirby/sprite_00.png"))
 
     def value_changed(self, i):
         self.text2.setText(str(i))
-
-    def slider_position(self, p):
-        print("Position", p)
+        delay = int(1000/i)
+        self.timer.setInterval(delay)
 
     def animation(self):
-        
-        self.image.setPixmap(QPixmap("Kirby/sprite_01.png"))
-        print("Animation")
-
-
-    # You will need methods in the class to act as slots to connect to signals
-
+        self.sprite += 1
+        if self.sprite == self.num_frames:
+            self.sprite = 0
+        self.image.setPixmap(self.frames[self.sprite])
+        # self.repaint()
 
 def main():
     app = QApplication([])
